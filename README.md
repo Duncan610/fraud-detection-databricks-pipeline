@@ -24,6 +24,24 @@ A **six-source, medallion-architecture batch pipeline** on Databricks:
 
 What makes this project different from a typical portfolio pipeline isn't that everything worked it's that **several things didn't**, and the process of catching, diagnosing, and fixing those failures is documented in full below, because that process *is* the actual skill being demonstrated.
 
+## Dashboard
+
+Live app: **[fraud-detection-dashboard](https://fraud-detection-dashboard-7474643844084651.aws.databricksapps.com/)**
+
+Built with Streamlit, deployed via Databricks Apps, querying the gold layer directly through a Databricks SQL Warehouse connection with a least-privilege service-principal grant.
+
+### App Status
+![Deployed and Running](screenshots/deployedrunning.png)
+
+### Summary Metrics
+![Total Numbers on Streamlit](screenshots/totalnumbersonstreamlit.png)
+
+### Risk Tier Breakdown
+![Risk Tier Breakdown](screenshots/risktierbreakdown.png)
+
+### Daily Fraud Trend
+![Daily Fraud Trend](screenshots/dailyfraudtrend.png)
+
 ---
 
 ## Architecture
@@ -156,7 +174,7 @@ flowchart LR
 **On source #5:** the disposable-domains list was researched, vetted for active maintenance, and ingested into bronze but the transaction dataset has no customer email field to join it against. Rather than fabricate a synthetic email field (compounding one layer of synthetic data on another), it was deliberately excluded from silver/gold. In a system with real customer emails, this would be a straightforward join. Documented here as an evaluated, intentional exclusion rather than an oversight.
 
 ### Ingestion in practice
-![Uploading Kaggle CSV to Unity Catalog Volume](docs/screenshots/uploadingkagglecsvfraudfile.png)
+![Uploading Kaggle CSV to Unity Catalog Volume](screenshots/uploadingkagglecsvfraudfile.png)
 
 The core transaction dataset (1,472,952 rows) landed in the `fraud_detection.bronze.raw_files` Unity Catalog volume before being read into Delta.
 
@@ -210,13 +228,13 @@ The full pipeline is orchestrated as a single Databricks Workflows job, Git-sour
 - **Git-sourced tasks:** every task pulls directly from GitHub `main` rather than a local workspace clone, so the job always reflects the latest committed code
 
 ### DAG Structure
-![DAG Success View](docs/screenshots/daggraphsuccess.png)
+![DAG Success View](screenshots/daggraphsuccess.png)
 
 ### Timeline View
-![DAG Timeline View](docs/screenshots/dagtimelineview.png)
+![DAG Timeline View](screenshots/dagtimelineview.png)
 
 ### Failure Notification Email
-![Email Notification on Failure](docs/screenshots/emailfrauddagsuccess.png)
+![Email Notification on Failure](screenshots/emailfrauddagsuccess.png)
 
 **A real bug caught by running the full DAG, not just individual notebooks:** a leftover debug cell in `transactions_enriched_final` — querying a column (`_1`) that was confirmed months earlier to never actually exist in the schema — was never deleted after the investigation that ruled it out. Running notebooks interactively, cell-by-cell, never surfaced this, since it's easy to skip past a stale cell manually. The scheduled Workflow run, which executes every cell top-to-bottom unconditionally, caught it immediately. Removed the dead cell and re-ran successfully. A good reminder that "runs fine when I click through it" and "runs fine end-to-end unattended" are different bars, and only the second one is what a real production pipeline actually needs to clear.
 
@@ -232,31 +250,6 @@ The full pipeline is orchestrated as a single Databricks Workflows job, Git-sour
 | Day of transaction | Steady ~5% across all 94 days | No temporal trend |
 
 The headline finding isn't "fraud detected" — it's that **most intuitive fraud dimensions in this dataset carry no real signal**, and the project's value is in having the statistical discipline to demonstrate that rather than report every correlation as if it were meaningful.
-
----
-
-## Dashboard
-
-Live app: **[fraud-detection-dashboard](https://fraud-detection-dashboard-7474643844084651.aws.databricksapps.com/)**
-
-Built with Streamlit, deployed via Databricks Apps, querying the gold layer directly through a Databricks SQL Warehouse connection with a least-privilege service-principal grant.
-
-### App Status
-![Deployed and Running](docs/screenshots/deployedrunning.png)
-
-### Summary Metrics
-![Total Numbers on Streamlit](docs/screenshots/totalnumbersonstreamlit.png)
-
-### Risk Tier Breakdown
-![Risk Tier Breakdown](docs/screenshots/risktierbreakdown.png)
-
-### Daily Fraud Trend
-![Daily Fraud Trend](docs/screenshots/dailyfraudtrend.png)
-
-### Fraud Rate by Category and Country
-![Fraud Rate by Category and Country](docs/screenshots/fraudratebycategoryandcountry.png)
-
-*Shown for transparency and completeness — statistical testing found neither dimension carries a meaningful signal in this dataset. See [Key Findings](#key-findings-what-the-data-actually-shows).*
 
 ---
 
