@@ -44,6 +44,19 @@ Built with Streamlit, deployed via Databricks Apps, querying the gold layer dire
 
 ---
 
+## Scope & Limitations
+
+This project's "fraud detection" currently rests on **one validated signal** `price_out_of_range` (7.25% fraud rate vs. 3.89% baseline) not a trained classifier. The gold-layer `composite_risk_score` is a transparent, fixed-weight heuristic built around that single feature, plus lower-weighted features included for real-world completeness rather than proven predictive value.
+
+Every other reference signal tested showed no meaningful correlation with the fraud label **in this dataset**:
+- IP blocklist match: 0% fraud overlap across 52 matches
+- Product category: 4.95%–5.05%, statistically uniform
+- IP-derived country: no signal after correcting for testing 238 groups at once
+
+This is documented in full in [Engineering Decisions](#engineering-decisions--what-actually-happened) surfaced here upfront rather than left until deep in that section, since it materially affects how the "fraud detection" claim should be read. A trained model (logistic regression / gradient boosting) evaluated against this heuristic, an automated test suite, and a sample-data reproduction path are in progress see [Future Improvements](#future-improvements).
+
+---
+
 ## Architecture
 
 ```mermaid
