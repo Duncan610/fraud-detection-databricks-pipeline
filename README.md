@@ -246,7 +246,7 @@ The full pipeline is orchestrated as a single Databricks Workflows job, Git-sour
 ### Timeline View
 ![DAG Timeline View](screenshots/dagtimelineview.png)
 
-### Failure Notification Email
+### Failure solved Notification Email
 ![Email Notification on Failure](screenshots/emailfrauddagsuccess.png)
 
 **A real bug caught by running the full DAG, not just individual notebooks:** a leftover debug cell in `transactions_enriched_final` — querying a column (`_1`) that was confirmed months earlier to never actually exist in the schema — was never deleted after the investigation that ruled it out. Running notebooks interactively, cell-by-cell, never surfaced this, since it's easy to skip past a stale cell manually. The scheduled Workflow run, which executes every cell top-to-bottom unconditionally, caught it immediately. Removed the dead cell and re-ran successfully. A good reminder that "runs fine when I click through it" and "runs fine end-to-end unattended" are different bars, and only the second one is what a real production pipeline actually needs to clear.
@@ -320,7 +320,6 @@ fraud-detection-databricks-pipeline/
 ## Future Improvements
 
 - Reconcile a real customer-email field (or a properly-labeled synthetic one) to bring the disposable-domains source into the fraud signal set
-- Extend the composite risk score with a proper model (logistic regression / gradient boosting) now that `price_out_of_range` is validated as a real feature, rather than a fixed-weight heuristic
 - Add a scheduled (rather than manually-triggered) run, if extended to a dataset that genuinely updates over time
 - Expand the MaxMind-unresolved IP cohort (anonymous proxies, satellite ranges) into its own explicit risk feature, since "geolocation failed" is itself sometimes a fraud-relevant signal
 
